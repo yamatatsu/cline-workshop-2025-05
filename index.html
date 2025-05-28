@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テトリス</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-info">
+            <h1>テトリス</h1>
+            <div class="score-container">
+                <div class="score">
+                    <span>スコア: </span>
+                    <span id="score">0</span>
+                </div>
+                <div class="level">
+                    <span>レベル: </span>
+                    <span id="level">1</span>
+                </div>
+                <div class="lines">
+                    <span>ライン: </span>
+                    <span id="lines">0</span>
+                </div>
+            </div>
+            <div class="next-piece">
+                <h3>次のピース</h3>
+                <canvas id="next-canvas" width="120" height="120"></canvas>
+            </div>
+            <div class="controls">
+                <h3>操作方法</h3>
+                <p>← → : 移動</p>
+                <p>↓ : 高速落下</p>
+                <p>↑ : 回転</p>
+                <p>スペース : ハードドロップ</p>
+                <p>P : 一時停止</p>
+            </div>
+        </div>
+        <div class="game-board">
+            <canvas id="game-canvas" width="300" height="600"></canvas>
+            <div id="game-over" class="game-over hidden">
+                <h2>ゲームオーバー</h2>
+                <p>最終スコア: <span id="final-score">0</span></p>
+                <button id="restart-btn">もう一度プレイ</button>
+            </div>
+            <div id="pause-screen" class="pause-screen hidden">
+                <h2>一時停止</h2>
+                <p>Pキーで再開</p>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
