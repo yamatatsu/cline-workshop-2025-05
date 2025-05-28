@@ -133,6 +133,9 @@ class TetrisGame {
         document.getElementById('restart-btn').addEventListener('click', () => {
             this.restart();
         });
+        
+        // タッチ操作ボタンのイベントリスナー
+        this.setupTouchControls();
     }
     
     generateNextPiece() {
@@ -447,6 +450,106 @@ class TetrisGame {
         this.gameRunning = false;
         document.getElementById('final-score').textContent = this.score;
         document.getElementById('game-over').classList.remove('hidden');
+    }
+    
+    setupTouchControls() {
+        // タッチ操作ボタンのイベントリスナーを設定
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+        const downBtn = document.getElementById('down-btn');
+        const rotateBtn = document.getElementById('rotate-btn');
+        const dropBtn = document.getElementById('drop-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        
+        // 左移動
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.movePiece(-1, 0);
+            }
+        });
+        
+        leftBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.movePiece(-1, 0);
+            }
+        });
+        
+        // 右移動
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.movePiece(1, 0);
+            }
+        });
+        
+        rightBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.movePiece(1, 0);
+            }
+        });
+        
+        // 下移動（高速落下）
+        downBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.movePiece(0, 1);
+            }
+        });
+        
+        downBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.movePiece(0, 1);
+            }
+        });
+        
+        // 回転
+        rotateBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.rotatePiece();
+            }
+        });
+        
+        rotateBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.rotatePiece();
+            }
+        });
+        
+        // ハードドロップ
+        dropBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.hardDrop();
+            }
+        });
+        
+        dropBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.gameRunning && !this.paused) {
+                this.hardDrop();
+            }
+        });
+        
+        // 一時停止
+        pauseBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.gameRunning) {
+                this.togglePause();
+            }
+        });
+        
+        pauseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.gameRunning) {
+                this.togglePause();
+            }
+        });
     }
     
     restart() {

@@ -39,6 +39,20 @@
         </div>
         <div class="game-board">
             <canvas id="game-canvas" width="300" height="600"></canvas>
+            <div class="touch-controls">
+                <div class="control-row">
+                    <button id="rotate-btn" class="control-btn rotate-btn">↻</button>
+                    <button id="pause-btn" class="control-btn pause-btn">⏸</button>
+                </div>
+                <div class="control-row">
+                    <button id="left-btn" class="control-btn move-btn">←</button>
+                    <button id="down-btn" class="control-btn move-btn">↓</button>
+                    <button id="right-btn" class="control-btn move-btn">→</button>
+                </div>
+                <div class="control-row">
+                    <button id="drop-btn" class="control-btn drop-btn">DROP</button>
+                </div>
+            </div>
             <div id="game-over" class="game-over hidden">
                 <h2>ゲームオーバー</h2>
                 <p>最終スコア: <span id="final-score">0</span></p>

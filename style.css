@@ -168,33 +168,6 @@ body {
     display: none !important;
 }
 
-/* レスポンシブデザイン */
-@media (max-width: 768px) {
-    .game-container {
-        flex-direction: column;
-        padding: 20px;
-        gap: 20px;
-    }
-    
-    .game-info {
-        width: 100%;
-        order: 2;
-    }
-    
-    .game-info h1 {
-        font-size: 2em;
-    }
-    
-    #game-canvas {
-        width: 250px;
-        height: 500px;
-    }
-    
-    .controls {
-        display: none;
-    }
-}
-
 /* アニメーション効果 */
 @keyframes fadeIn {
     from {
@@ -220,4 +193,158 @@ body {
 
 .score-update {
     animation: scoreUpdate 0.3s ease-out;
+}
+
+/* タッチ操作ボタン */
+.touch-controls {
+    display: none;
+    position: absolute;
+    bottom: -180px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.control-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.control-row:last-child {
+    margin-bottom: 0;
+}
+
+.control-btn {
+    width: 60px;
+    height: 60px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.5em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.move-btn {
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    color: white;
+}
+
+.rotate-btn {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+}
+
+.pause-btn {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    color: white;
+}
+
+.drop-btn {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    color: white;
+    width: 130px;
+    font-size: 1.2em;
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+    body {
+        align-items: flex-start;
+        padding: 10px;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    
+    .game-container {
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    .game-info {
+        width: 100%;
+        order: 2;
+        gap: 15px;
+    }
+    
+    .game-info h1 {
+        font-size: 1.8em;
+        margin-bottom: 5px;
+    }
+    
+    .score-container, .next-piece {
+        padding: 15px;
+    }
+    
+    #game-canvas {
+        width: 240px;
+        height: 360px;
+    }
+    
+    .controls {
+        display: none;
+    }
+    
+    .touch-controls {
+        display: block !important;
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        margin-top: 15px;
+        width: 100%;
+        max-width: 300px;
+        padding: 12px;
+    }
+    
+    .game-board {
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .control-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3em;
+    }
+    
+    .drop-btn {
+        width: 110px;
+        font-size: 1.1em;
+    }
+    
+    .control-row {
+        gap: 8px;
+        margin-bottom: 8px;
+    }
 }
