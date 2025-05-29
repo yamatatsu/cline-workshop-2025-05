@@ -8,36 +8,86 @@ class SoundSystem {
     constructor() {
         this.audioContext = null;
         this.enabled = true;
-        this.initAudio();
+        this.initialized = false;
+        this.userInteracted = false;
+        console.log('SoundSystem: 初期化開始');
     }
     
-    initAudio() {
+    async initAudio() {
+        if (this.initialized) {
+            console.log('SoundSystem: 既に初期化済み');
+            return true;
+        }
+        
         try {
+            console.log('SoundSystem: AudioContext作成中...');
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            console.log('SoundSystem: AudioContext状態:', this.audioContext.state);
+            
+            // iOSでは最初にsuspended状態になるため、resume()を呼び出す
+            if (this.audioContext.state === 'suspended') {
+                console.log('SoundSystem: AudioContextをresume中...');
+                await this.audioContext.resume();
+                console.log('SoundSystem: AudioContext状態 (resume後):', this.audioContext.state);
+            }
+            
+            this.initialized = true;
+            this.enabled = true;
+            console.log('SoundSystem: 初期化完了');
+            return true;
         } catch (e) {
-            console.warn('Web Audio API not supported');
+            console.warn('SoundSystem: Web Audio API not supported', e);
             this.enabled = false;
+            return false;
         }
     }
     
-    playTone(frequency, duration, type = 'sine', volume = 0.1) {
-        if (!this.enabled || !this.audioContext) return;
+    async enableAudio() {
+        console.log('SoundSystem: enableAudio呼び出し');
+        this.userInteracted = true;
+        return await this.initAudio();
+    }
+    
+    async playTone(frequency, duration, type = 'sine', volume = 0.1) {
+        if (!this.enabled || !this.audioContext) {
+            console.log('SoundSystem: サウンド無効またはAudioContext未初期化');
+            return;
+        }
         
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
+        // AudioContextが停止している場合は再開を試みる
+        if (this.audioContext.state === 'suspended') {
+            console.log('SoundSystem: AudioContextが停止中、再開を試みます');
+            try {
+                await this.audioContext.resume();
+                console.log('SoundSystem: AudioContext再開成功');
+            } catch (e) {
+                console.warn('SoundSystem: AudioContext再開失敗', e);
+                return;
+            }
+        }
         
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
-        oscillator.type = type;
-        
-        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(volume, this.audioContext.currentTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
-        
-        oscillator.start(this.audioContext.currentTime);
-        oscillator.stop(this.audioContext.currentTime + duration);
+        try {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(volume, this.audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + duration);
+            
+            console.log('SoundSystem: 音再生成功 -', frequency + 'Hz');
+        } catch (e) {
+            console.warn('SoundSystem: 音再生失敗', e);
+        }
     }
     
     playMove() {
@@ -156,6 +206,7 @@ class TetrisGame {
         this.gameRunning = false;
         this.paused = false;
         this.previousLevel = 1;
+        this.gameStarted = false;
         
         // サウンドシステムを初期化
         this.soundSystem = new SoundSystem();
@@ -169,14 +220,67 @@ class TetrisGame {
     
     init() {
         this.setupEventListeners();
+        this.showStartScreen();
+    }
+    
+    showStartScreen() {
+        const startScreen = document.getElementById('start-screen');
+        const gameCanvas = document.getElementById('game-canvas');
+        
+        if (startScreen) {
+            startScreen.classList.remove('hidden');
+            gameCanvas.style.opacity = '0.3';
+        }
+    }
+    
+    hideStartScreen() {
+        const startScreen = document.getElementById('start-screen');
+        const gameCanvas = document.getElementById('game-canvas');
+        
+        if (startScreen) {
+            startScreen.classList.add('hidden');
+            gameCanvas.style.opacity = '1';
+        }
+    }
+    
+    async startGame() {
+        console.log('ゲーム開始処理開始');
+        
+        // サウンドシステムを有効化
+        const audioEnabled = await this.soundSystem.enableAudio();
+        console.log('サウンド有効化結果:', audioEnabled);
+        
+        // スタート画面を非表示
+        this.hideStartScreen();
+        
+        // ゲーム初期化
         this.generateNextPiece();
         this.spawnPiece();
         this.updateDisplay();
         this.gameRunning = true;
+        this.gameStarted = true;
+        
+        console.log('ゲーム開始完了');
         this.gameLoop();
     }
     
     setupEventListeners() {
+        // スタートボタンのイベントリスナー
+        const startBtn = document.getElementById('start-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                console.log('スタートボタンがクリックされました');
+                await this.startGame();
+            });
+            
+            startBtn.addEventListener('touchstart', async (e) => {
+                e.preventDefault();
+                console.log('スタートボタンがタップされました');
+                await this.startGame();
+            });
+        }
+        
         document.addEventListener('keydown', (e) => {
             if (!this.gameRunning || this.paused) {
                 if (e.code === 'KeyP') {
@@ -207,8 +311,8 @@ class TetrisGame {
             }
         });
         
-        document.getElementById('restart-btn').addEventListener('click', () => {
-            this.restart();
+        document.getElementById('restart-btn').addEventListener('click', async () => {
+            await this.restart();
         });
         
         // タッチ操作ボタンのイベントリスナー
@@ -650,7 +754,7 @@ class TetrisGame {
         });
     }
     
-    restart() {
+    async restart() {
         this.board = this.createBoard();
         this.score = 0;
         this.level = 1;
@@ -661,6 +765,9 @@ class TetrisGame {
         
         document.getElementById('game-over').classList.add('hidden');
         document.getElementById('pause-screen').classList.add('hidden');
+        
+        // サウンドシステムを再有効化
+        await this.soundSystem.enableAudio();
         
         this.generateNextPiece();
         this.spawnPiece();
