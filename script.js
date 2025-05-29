@@ -3,6 +3,79 @@ const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 const BLOCK_SIZE = 30;
 
+// サウンドシステム
+class SoundSystem {
+    constructor() {
+        this.audioContext = null;
+        this.enabled = true;
+        this.initAudio();
+    }
+    
+    initAudio() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.warn('Web Audio API not supported');
+            this.enabled = false;
+        }
+    }
+    
+    playTone(frequency, duration, type = 'sine', volume = 0.1) {
+        if (!this.enabled || !this.audioContext) return;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+        oscillator.type = type;
+        
+        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(volume, this.audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+        
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + duration);
+    }
+    
+    playMove() {
+        this.playTone(800, 0.1, 'square', 0.05);
+    }
+    
+    playRotate() {
+        this.playTone(600, 0.15, 'triangle', 0.06);
+    }
+    
+    playDrop() {
+        this.playTone(400, 0.2, 'sawtooth', 0.08);
+    }
+    
+    playLineClear() {
+        // 複数の音を重ねてライン消去音を作成
+        this.playTone(523, 0.3, 'sine', 0.1); // C5
+        setTimeout(() => this.playTone(659, 0.3, 'sine', 0.1), 100); // E5
+        setTimeout(() => this.playTone(784, 0.3, 'sine', 0.1), 200); // G5
+    }
+    
+    playGameOver() {
+        // 下降する音階でゲームオーバー音
+        const notes = [523, 494, 440, 392, 349]; // C5 -> F4
+        notes.forEach((note, index) => {
+            setTimeout(() => this.playTone(note, 0.4, 'sine', 0.08), index * 200);
+        });
+    }
+    
+    playLevelUp() {
+        // 上昇する音階でレベルアップ音
+        const notes = [392, 440, 494, 523, 587]; // G4 -> D5
+        notes.forEach((note, index) => {
+            setTimeout(() => this.playTone(note, 0.2, 'triangle', 0.06), index * 100);
+        });
+    }
+}
+
 // テトリミノの形状定義
 const TETROMINOS = {
     I: {
@@ -82,6 +155,10 @@ class TetrisGame {
         this.lastTime = 0;
         this.gameRunning = false;
         this.paused = false;
+        this.previousLevel = 1;
+        
+        // サウンドシステムを初期化
+        this.soundSystem = new SoundSystem();
         
         this.init();
     }
@@ -169,6 +246,10 @@ class TetrisGame {
         if (!this.isCollision(this.currentPiece, dx, dy)) {
             this.currentPiece.x += dx;
             this.currentPiece.y += dy;
+            // 横移動の場合のみサウンドを再生
+            if (dx !== 0) {
+                this.soundSystem.playMove();
+            }
             return true;
         }
         return false;
@@ -181,6 +262,9 @@ class TetrisGame {
         
         if (this.isCollision(this.currentPiece, 0, 0)) {
             this.currentPiece.shape = originalShape;
+        } else {
+            // 回転が成功した場合のみサウンドを再生
+            this.soundSystem.playRotate();
         }
     }
     
@@ -201,6 +285,7 @@ class TetrisGame {
         while (this.movePiece(0, 1)) {
             this.score += 2;
         }
+        this.soundSystem.playDrop();
         this.placePiece();
     }
     
@@ -257,10 +342,20 @@ class TetrisGame {
         if (linesCleared > 0) {
             this.lines += linesCleared;
             this.score += this.calculateScore(linesCleared);
-            this.level = Math.floor(this.lines / 10) + 1;
+            const newLevel = Math.floor(this.lines / 10) + 1;
+            
+            // レベルアップ判定
+            if (newLevel > this.level) {
+                this.soundSystem.playLevelUp();
+            }
+            
+            this.level = newLevel;
             this.dropInterval = Math.max(50, 1000 - (this.level - 1) * 50);
             this.updateDisplay();
             this.animateScoreUpdate();
+            
+            // ライン消去音を再生
+            this.soundSystem.playLineClear();
         }
     }
     
@@ -450,6 +545,9 @@ class TetrisGame {
         this.gameRunning = false;
         document.getElementById('final-score').textContent = this.score;
         document.getElementById('game-over').classList.remove('hidden');
+        
+        // ゲームオーバー音を再生
+        this.soundSystem.playGameOver();
     }
     
     setupTouchControls() {
